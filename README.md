@@ -198,6 +198,40 @@ However, a quicker approach is to only polish the MAGs of interest. This can be 
 ```
 Further tips for optimization can be found on the **[wiki](https://github.com/ukhsa-collaboration/LOMA/wiki/3\).-Running#reducing-runtime-)**.
 
+### Execution profiles for optimized performance
+
+LOMA now includes optimized execution profiles for different hardware configurations, including HPC clusters and GPU-accelerated workstations. These profiles optimize resource allocation and can significantly improve performance.
+
+**Available profiles:**
+- `slurm` - Slurm HPC cluster execution (CPU only)
+- `slurm_gpu` - Slurm HPC with GPU support
+- `rtx4070` - RTX 4070 Ultra workstation (22 cores, 64GB RAM, GPU support)
+- `dgx_a100` - NVIDIA DGX Station A100 (128 cores, 512GB RAM, 4x A100 GPUs)
+
+**Quick examples:**
+```bash
+# RTX 4070 workstation with GPU acceleration for Medaka
+./run_loma --input input.tsv -profile rtx4070 --MEDAKA.args "-d 0"
+
+# DGX A100 station for high-throughput processing
+./run_loma --input input.tsv -profile dgx_a100 --MEDAKA.args "-d 0"
+
+# Slurm HPC cluster
+./run_loma --input input.tsv -profile slurm
+
+# Slurm HPC with GPU nodes
+./run_loma --input input.tsv -profile slurm_gpu --MEDAKA.args "-d 0"
+```
+
+**GPU acceleration benefits:**
+- Medaka polishing: 2-10x faster depending on GPU
+- RTX 4070: ~2-4x speedup
+- A100: ~5-10x speedup
+
+For detailed profile documentation and configuration options, see:
+- **[Profile Documentation](docs/PROFILES.md)** - Comprehensive guide
+- **[Quick Reference](docs/PROFILE_QUICK_REFERENCE.md)** - Cheat sheet and examples
+
 # Troubleshooting and errors  <a name="troubleshoot"></a>
 
 Advice on how to identify, diagnose and fix errors can be found on the **[wiki](https://github.com/ukhsa-collaboration/LOMA/wiki/5\).-Troubleshooting#errors)**.
