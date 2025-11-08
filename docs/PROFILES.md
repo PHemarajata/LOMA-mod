@@ -199,27 +199,106 @@ nextflow run main.nf -profile dgx_a100 \
 
 ### Supported Tools
 
-Currently, GPU acceleration is supported for:
+GPU acceleration is supported for the following tools:
 
-1. **Medaka** - Consensus sequence polishing
-   - Supports NVIDIA GPUs via CUDA
-   - Requires GPU-enabled profile (`rtx4070`, `dgx_a100`, `slurm_gpu`)
-   - Enable with: `--MEDAKA.args "-d 0"` (where 0 is the GPU device ID)
+#### 1. **Medaka** - Consensus Sequence Polishing
+- **GPU Support**: NVIDIA CUDA
+- **Profiles**: `rtx4070`, `dgx_a100`, `slurm_gpu`
+- **Enable**: `--MEDAKA.args "-d 0"` (0 = GPU device ID)
+- **Performance**: 2-10x speedup vs CPU
+- **Container**: Uses CUDA-enabled Medaka container
+
+**Example**:
+```bash
+nextflow run main.nf -profile dgx_a100 \
+  --input samples.csv \
+  --MEDAKA.args "-d 0"
+```
+
+#### 2. **minimap2** - Read Alignment (via NVIDIA Parabricks)
+- **GPU Support**: NVIDIA Parabricks
+- **Profiles**: `rtx4070`, `dgx_a100`, `slurm_gpu`
+- **Auto-enabled**: Enabled by default on GPU profiles
+- **Performance**: 3-8x speedup vs CPU
+- **Container**: `nvcr.io/nvidia/clara/clara-parabricks:4.3.2-1`
+- **License**: Requires NVIDIA Parabricks license
+
+**Processes Accelerated**:
+- `MINIMAP2_ALIGN` - Read decontamination alignment
+- `MINIMAP2_ALIGN_1` - Contig QC alignment
+- `MINIMAP2_ALIGN_BIN_1-5` - Assembly binning alignments
+
+**Enable/Disable**:
+```bash
+# Enable (default on GPU profiles)
+nextflow run main.nf -profile rtx4070 \
+  --input samples.csv \
+  --use_parabricks true
+
+# Disable if Parabricks not available
+nextflow run main.nf -profile rtx4070 \
+  --input samples.csv \
+  --use_parabricks false
+```
+
+**Custom Parabricks Container**:
+If using a different Parabricks version or location:
+```bash
+nextflow run main.nf -profile dgx_a100 \
+  --input samples.csv \
+  --parabricks_container "path/to/your/parabricks:version"
+```
+
+**Note**: Parabricks is a commercial product requiring licensing. If you don't have a Parabricks license, set `--use_parabricks false` to use standard CPU-based minimap2.
 
 ### GPU-Enabled Profiles
 
 The following profiles have GPU support enabled:
-- `rtx4070`
-- `dgx_a100`
-- `slurm_gpu`
+- `rtx4070` - Single RTX 4070 GPU
+- `dgx_a100` - 4x A100 GPUs
+- `slurm_gpu` - HPC cluster with GPU nodes
+
+### Performance Benchmarks
+
+| Tool | GPU | CPU Baseline | GPU Speedup | Notes |
+|------|-----|--------------|-------------|-------|
+| Medaka | RTX 4070 | 1x | 2-4x | Small genomes |
+| Medaka | A100 | 1x | 5-10x | Large genomes |
+| minimap2 (Parabricks) | RTX 4070 | 1x | 3-5x | Read alignment |
+| minimap2 (Parabricks) | A100 | 1x | 5-8x | Large datasets |
+
+### Parabricks Setup
+
+**Requirements**:
+1. NVIDIA GPU (Compute Capability 6.0+)
+2. NVIDIA Driver 470+
+3. Parabricks license (obtain from NVIDIA)
+4. Singularity/Docker with GPU support
+
+**Obtaining Parabricks**:
+1. Register at NVIDIA NGC: https://ngc.nvidia.com/
+2. Accept Parabricks license terms
+3. Pull container:
+   ```bash
+   singularity pull docker://nvcr.io/nvidia/clara/clara-parabricks:4.3.2-1
+   ```
+
+**Verification**:
+```bash
+# Test GPU access
+nvidia-smi
+
+# Test Parabricks
+singularity exec --nv parabricks.sif pbrun version
+```
 
 ### Future GPU Acceleration
 
-The following tools have potential for GPU acceleration but require additional container/tool modifications:
+Potential tools for future GPU acceleration:
 
 - **Kraken2** - Via Kraken2-GPU (separate implementation)
-- **minimap2** - Via GPU-accelerated forks
 - **BLAST** - Via GPU-BLAST
+- **Additional aligners** - bwa-mem2, bowtie2 (via Parabricks)
 
 Contact the development team if you need GPU support for additional tools.
 

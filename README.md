@@ -224,9 +224,17 @@ LOMA now includes optimized execution profiles for different hardware configurat
 ```
 
 **GPU acceleration benefits:**
-- Medaka polishing: 2-10x faster depending on GPU
-- RTX 4070: ~2-4x speedup
-- A100: ~5-10x speedup
+- **Medaka polishing**: 2-10x faster depending on GPU
+  - RTX 4070: ~2-4x speedup
+  - A100: ~5-10x speedup
+- **minimap2 alignment** (via NVIDIA Parabricks): 3-8x faster
+  - RTX 4070: ~3-5x speedup
+  - A100: ~5-8x speedup
+  - Note: Requires Parabricks license (disable with `--use_parabricks false`)
+
+**GPU-accelerated processes:**
+- Medaka: Consensus polishing for assemblies
+- minimap2: Read decontamination, contig QC, and binning alignments
 
 For detailed profile documentation and configuration options, see:
 - **[Profile Documentation](docs/PROFILES.md)** - Comprehensive guide

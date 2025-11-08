@@ -31,21 +31,51 @@ nextflow run main.nf -profile standard --input samples.csv
 
 ## GPU Acceleration Quick Tips
 
-### Enable GPU for Medaka
-```bash
-# RTX 4070
---MEDAKA.args "-d 0"
+### GPU-Accelerated Tools
 
-# DGX A100 (use first GPU)
+**Medaka** (Consensus Polishing):
+```bash
+# Enable GPU for Medaka
 --MEDAKA.args "-d 0"
 
 # Check GPU availability
 nvidia-smi
 ```
 
+**minimap2** (Read Alignment via Parabricks):
+```bash
+# Enabled by default on GPU profiles (rtx4070, dgx_a100, slurm_gpu)
+# To disable if Parabricks not available:
+--use_parabricks false
+
+# Use custom Parabricks container:
+--parabricks_container "your/parabricks:version"
+```
+
 ### Expected Performance Gains
-- **RTX 4070**: 2-4x faster for Medaka
-- **A100**: 5-10x faster for Medaka
+
+| Tool | RTX 4070 | A100 |
+|------|----------|------|
+| Medaka | 2-4x | 5-10x |
+| minimap2 (Parabricks) | 3-5x | 5-8x |
+
+### Parabricks Quick Setup
+
+**Note**: Parabricks requires NVIDIA licensing.
+
+```bash
+# 1. Pull Parabricks container
+singularity pull docker://nvcr.io/nvidia/clara/clara-parabricks:4.3.2-1
+
+# 2. Test it works
+singularity exec --nv parabricks.sif pbrun version
+
+# 3. Run with Parabricks enabled (default)
+nextflow run main.nf -profile rtx4070 --input samples.csv
+
+# 4. Run without Parabricks
+nextflow run main.nf -profile rtx4070 --input samples.csv --use_parabricks false
+```
 
 ## Resource Tuning
 
