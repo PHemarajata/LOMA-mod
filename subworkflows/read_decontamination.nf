@@ -43,6 +43,11 @@ workflow READ_DECONTAMINATION {
        }
     }
 
+    // If no decontamination databases are configured, pass reads through unchanged
+    if (!params.READ_DECONTAMINATION.host_assembly && !params.READ_DECONTAMINATION.host_krakendb) {
+       ch_candidate_reads = qc_pass_reads.map{meta -> meta = [meta[0], meta[1], [], []]}
+    }
+
     FILTER_READLIST(ch_candidate_reads)
     //versions
 

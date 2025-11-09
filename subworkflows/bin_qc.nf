@@ -49,11 +49,16 @@ workflow BIN_QC {
                     ch_int_2 = ch_int_1.join(ASSEMBLY_STATS.out.asm_stats, by: [0])
                     ch_int_3 = contig_qc_results.join(ch_int_2, by: [0])
 
-                    PLOT_BINS(ch_int_3, params.TAXONOMIC_PROFILING.gtdb_metadata, params.PLOT_BINS.template) 
+                    PLOT_BINS(ch_int_3, params.TAXONOMIC_PROFILING.gtdb_metadata, params.PLOT_BINS.template)
                     ch_versions = ch_versions.mix(PLOT_BINS.out.versions)
 
                     ch_binreports = ch_binreports.mix(PLOT_BINS.out.bin_summary)
                     ch_binreports = ch_binreports.mix(PLOT_BINS.out.contig_summary) }}}}
+
+    // If databases not configured, populate empty channels to avoid workflow failures
+    if (!params.GTDBTK_CLASSIFYWF.gtdb_db || !params.GTDBTK_CLASSIFYWF.mash_db || !params.CHECKM_LINEAGEWF.db || !params.TAXONOMIC_PROFILING.gtdb_metadata) {
+        ch_int_3 = Channel.empty()
+    }
 
     emit:
     ch_int_3
